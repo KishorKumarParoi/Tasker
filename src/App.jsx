@@ -84,25 +84,17 @@ function TaskList({ TaskList, onChangeTask, onDelete }) {
 
 export default function App() {
   const [Task, setTask] = useState(initialTasks);
-  console.log("🚀 ~ App ~ Task:", Task)
-
-  if (Task.length === 0) {
-    return (
-      <>
-        <h1 className='font-semibold bg-yellow-500 text-5xl'>There is No To-Do Left</h1>
-      </>
-    )
-  }
+  console.log("🚀 ~ App ~ Task:", Task);
 
   const goNextId = (data) => {
     let nextId = 0;
     if (data.length > 0) {
-      for (let i = 0; i < data.length; ++i) {
+      for (let i = 0; i < data.length; i++) {
         if (nextId < data[i].id)
           nextId = data[i].id;
       }
-      return nextId + 1;
     }
+    return nextId + 1;
   }
 
   function handleAddTask(text) {
