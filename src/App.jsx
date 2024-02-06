@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 import './App.css';
 
 function AddTask({ onAddTask }) {
@@ -82,8 +82,32 @@ function TaskList({ TaskList, onChangeTask, onDelete }) {
   )
 }
 
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case 'added': {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        }
+      ]
+    }
+    case 'changed': {
+      return tasks.map((t) => t.id === action.task.id ? action.task : t)
+    }
+    case 'deleted': {
+      return tasks.filter((t) => t.id !== action.taskId);
+    }
+    default: {
+      throw Error('Unknown Action : ' + action.type);
+    }
+  }
+}
+
 export default function App() {
-  const [Task, setTask] = useState(initialTasks);
+  const [Task, dispatch] = useReducer(tasksReducer, initialTasks);
   console.log("🚀 ~ App ~ Task:", Task);
 
   const goNextId = (data) => {
@@ -98,31 +122,41 @@ export default function App() {
   }
 
   function handleAddTask(text) {
-    if (text.trim() !== '') {
-      setTask([
-        ...Task,
-        {
-          id: goNextId(Task),
-          text: text.trim(),
-          done: false
-        }
-      ])
-    }
+    // if (text.trim() !== '') {
+    //   setTask([
+    //     ...Task,
+    //     {
+    //       id: goNextId(Task),
+    //       text: text.trim(),
+    //       done: false
+    //     }
+    //   ])
+    // }
+    dispatch({
+      type: 'added',
+      id: goNextId(Task),
+      text
+    })
   }
   function handleChangeTask(task) {
-    console.log(task);
-    setTask(
-      Task.map((t => t.id === task.id ? task : t))
-    )
+    // console.log(task);
+    // setTask(
+    //   Task.map((t => t.id === task.id ? task : t))
+    // )
+    dispatch({
+      type: 'changed',
+      task,
+    })
   }
   function handleDeleteTask(taskId) {
-    console.log(taskId);
-    let updatedTask = Task.filter(t => t.id !== taskId);
-    // console.log(updatedTask);
-    // if (updatedTask.length === 0) {
-    //   setTask(updatedTask);
-    // }
-    setTask(updatedTask);
+    // console.log(taskId);
+    // let updatedTask = Task.filter(t => t.id !== taskId);
+    // setTask(updatedTask);
+    // action object
+    dispatch({
+      type: 'deleted',
+      taskId
+    })
   }
 
   return (
