@@ -72,7 +72,18 @@ function AddTasks({ onAddTask }) {
 
 export default function App() {
   const [Tasks, setTasks] = useState(initialTasks);
-  let nextId = Tasks.reduce((prev, curr) => prev && prev.id > curr.id ? prev.id : curr.id) + 1;
+  const getNextId = (data) => {
+    let nextId = 0;
+    if (data.length > 0) {
+      for (let i = 0; i < Tasks.length; i++) {
+        if (nextId < Tasks[i].id) {
+          nextId = Tasks[i].id;
+        }
+      }
+    }
+
+    return nextId + 1;
+  }
 
   function handleAddTask(text) {
     if (text.trim() !== '') {
@@ -80,7 +91,7 @@ export default function App() {
         [
           ...Tasks,
           {
-            id: nextId,
+            id: getNextId(Tasks),
             text: text.trim(),
             done: false,
           }
@@ -100,9 +111,11 @@ export default function App() {
   return (
     <>
       <h1 className="bg-yellow-500 text-5xl text-white p-2 mb-5">Kishor Kumar Paroi</h1>
-      <AddTasks onAddTask={handleAddTask} />
-      <Tasklist Tasks={Tasks} onChangeTask={handleChangeTask} onDeleteTask={handleDeleteTask} />
-      {console.log(Tasks)}
+      <div>
+        <AddTasks onAddTask={handleAddTask} />
+        <Tasklist Tasks={Tasks} onChangeTask={handleChangeTask} onDeleteTask={handleDeleteTask} />
+        {console.log(Tasks)}
+      </div>
     </>
   )
 }
