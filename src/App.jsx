@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useReducer, useState } from "react";
 
 function Task({ task, onChangeTask, onDeleteTask }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -70,8 +70,35 @@ function AddTasks({ onAddTask }) {
   )
 }
 
+function taskReducer(Tasks, action) {
+  switch (action.type) {
+    case 'added': {
+      return (
+        [
+          ...Tasks,
+          {
+            id: action.id,
+            text: action.text.trim(),
+            done: action.done,
+          }
+        ]
+      )
+    }
+    case 'changed': {
+      return (
+        Tasks.map(t => t.id === action.task.id ? action.task : t)
+      )
+    }
+    case 'deleted': {
+      return (
+        Tasks.filter(t => t.id !== action.id)
+      )
+    }
+  }
+}
+
 export default function App() {
-  const [Tasks, setTasks] = useState(initialTasks);
+  const [Tasks, dispatch] = useReducer(taskReducer, initialTasks);
   const getNextId = (data) => {
     let nextId = 0;
     if (data.length > 0) {
@@ -87,25 +114,39 @@ export default function App() {
 
   function handleAddTask(text) {
     if (text.trim() !== '') {
-      setTasks(
-        [
-          ...Tasks,
-          {
-            id: getNextId(Tasks),
-            text: text.trim(),
-            done: false,
-          }
-        ]
-      )
+      // setTasks(
+      //   [
+      //     ...Tasks,
+      //     {
+      //       id: getNextId(Tasks),
+      //       text: text.trim(),
+      //       done: false,
+      //     }
+      //   ]
+      // )
+      dispatch({
+        type: 'added',
+        id: getNextId(Tasks),
+        text,
+        done: false,
+      })
     }
   }
 
   function handleChangeTask(task) {
-    setTasks(Tasks.map(t => t.id === task.id ? task : t));
+    // setTasks(Tasks.map(t => t.id === task.id ? task : t));
+    dispatch({
+      type: 'changed',
+      task,
+    })
   }
 
   function handleDeleteTask(taskId) {
-    setTasks(Tasks.filter(t => t.id !== taskId));
+    // setTasks(Tasks.filter(t => t.id !== taskId));
+    dispatch({
+      type: 'deleted',
+      id: taskId,
+    })
   }
 
   return (
