@@ -83,18 +83,34 @@ function TaskList({ TaskList, onChangeTask, onDelete }) {
 }
 
 export default function App() {
-
   const [Task, setTask] = useState(initialTasks);
-  console.log(Task);
+  console.log("🚀 ~ App ~ Task:", Task)
 
-  const nextId = Task.reduce((prev, curr) => prev && prev.id > curr.id ? prev.id : curr.id) + 1;
+  if (Task.length === 0) {
+    return (
+      <>
+        <h1 className='font-semibold bg-yellow-500 text-5xl'>There is No To-Do Left</h1>
+      </>
+    )
+  }
+
+  const goNextId = (data) => {
+    let nextId = 0;
+    if (data.length > 0) {
+      for (let i = 0; i < data.length; ++i) {
+        if (nextId < data[i].id)
+          nextId = data[i].id;
+      }
+      return nextId + 1;
+    }
+  }
 
   function handleAddTask(text) {
     if (text.trim() !== '') {
       setTask([
         ...Task,
         {
-          id: nextId,
+          id: goNextId(Task),
           text: text.trim(),
           done: false
         }
@@ -109,14 +125,21 @@ export default function App() {
   }
   function handleDeleteTask(taskId) {
     console.log(taskId);
-    setTask(Task.filter(t => t.id !== taskId))
+    let updatedTask = Task.filter(t => t.id !== taskId);
+    // console.log(updatedTask);
+    // if (updatedTask.length === 0) {
+    //   setTask(updatedTask);
+    // }
+    setTask(updatedTask);
   }
 
   return (
     <>
       <h1 className="font-semibold bg-yellow-500 text-5xl">Kishor Kumar Paroi</h1>
-      <AddTask onAddTask={handleAddTask} />
-      <TaskList TaskList={Task} onChangeTask={handleChangeTask} onDelete={handleDeleteTask} />
+      <div>
+        <AddTask onAddTask={handleAddTask} />
+        <TaskList TaskList={Task} onChangeTask={handleChangeTask} onDelete={handleDeleteTask} />
+      </div>
     </>
   )
 }
