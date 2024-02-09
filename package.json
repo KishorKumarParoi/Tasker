@@ -8,6 +8,7 @@
     "build": "vite build",
     "start": "npx tailwindcss -i ./src/input.css -o ./src/output.css --watch & vite build",
     "index": "nodemon",
+    "kkp": "nodemon index.js",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
