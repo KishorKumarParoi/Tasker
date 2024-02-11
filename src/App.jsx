@@ -16,7 +16,9 @@ function Footer() {
   )
 }
 
-function SearchBox() {
+function SearchBox({ onSearch }) {
+  let [text, setText] = useState('');
+
   return (
     <>
       <div className="p-2 flex justify-end">
@@ -25,9 +27,9 @@ function SearchBox() {
             <div className="relative overflow-hidden rounded-lg text-gray-50 md:min-w-[380px] lg:min-w-[440px]">
               <input type="search" id="search-dropdown"
                 className="z-20 block w-full bg-gray-800 px-4 py-2 pr-10 focus:outline-none"
-                placeholder="Search Task" required />
+                placeholder="Search Task" value={text} onChange={(e) => { setText(e.target.value); }} required />
               <button type="submit"
-                className="absolute right-2 top-0 h-full rounded-e-lg text-white md:right-4">
+                className="absolute right-2 top-0 h-full rounded-e-lg text-white md:right-4" onClick={(e) => { e.preventDefault(); onSearch(text); }}>
                 <svg className="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                   viewBox="0 0 20 20">
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
@@ -43,8 +45,13 @@ function SearchBox() {
   )
 }
 
-function Tasklist({ Tasks, onEdit }) {
+function Tasklist({ Tasks, onEdit, onDelete, onFavorite }) {
   console.log(Tasks);
+  if (Tasks.length === 0) {
+    return (
+      <h1 className=' text-5xl font-bold bg-red-600 p-4 '>There is no item left bro! Want to Add Some Task ?</h1>
+    )
+  }
 
   return (
     <>
@@ -62,13 +69,14 @@ function Tasklist({ Tasks, onEdit }) {
         <tbody>
           {Tasks.map(task => (
             < tr className="border-b border-[#2E3443] [&>td]:align-baseline [&>td]:px-4 [&>td]:py-2" key={task.id} >
-              <td><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-star"
+              <td><button onClick={() => onFavorite(task)}><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-star"
                 width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke={task.isFavorite ? "yellow" : "white"}
                 fill={task.isFavorite ? "yellow" : ""} strokeLinecap="round" strokeLinejoin="round">
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                 <path
                   d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" />
-              </svg></td>
+              </svg>
+              </button></td>
               <td>{task.title}</td>
               <td>
                 <div>
@@ -89,7 +97,7 @@ function Tasklist({ Tasks, onEdit }) {
               <td className="text-center">{task.priority}</td>
               <td>
                 <div className="flex items-center justify-center space-x-3">
-                  <button className="text-red-500" >{task.options[0]}</button>
+                  <button className="text-red-500" onClick={() => { onDelete(task) }} >{task.options[0]}</button>
                   <button className="text-blue-500" onClick={() => {
                     onEdit(task);
                   }}>{task.options[1]}</button>
@@ -264,16 +272,24 @@ function TaskBoard() {
     'colors': ["bg-[#00D991A1]", "bg-[#FE1A1AB5]", "bg-[#BD560BB2]", "bg-[#2F43F8BF]", "bg-[#10FBEDB2]", "bg-[#AE6D0BDB]", "bg-[#F72798]", "bg-[#12372A]"]
   };
 
-  const [Tasks, setTasks] = useState([demoData]);
+  let [Tasks, setTasks] = useState([demoData]);
 
 
   function handleAddTask(newTask) {
     console.log('adding new task...');
     console.log(newTask);
-    setTasks([
-      ...Tasks,
-      newTask,
-    ])
+
+    if (Tasks.length === 0) {
+      setTasks([
+        newTask
+      ])
+    }
+    else {
+      setTasks([
+        ...Tasks,
+        newTask,
+      ])
+    }
     setShowAddModal(false);
   }
 
@@ -302,6 +318,55 @@ function TaskBoard() {
     console.log('Edited and now to be saved...');
   }
 
+  function handleDeleteTask(task) {
+    console.log("Deleting a task...");
+    const newTasks = Tasks.filter(t => t.id !== task.id);
+    setTasks(newTasks);
+  }
+
+  function handleDeleteAll() {
+    console.log('Deleting all....');
+    setTasks([]);
+  }
+
+  function handleIsFavorite(task) {
+    console.log('Toggling favorite icon....');
+    let newTasks = Tasks.map(t => {
+      if (t.id === task.id) {
+        task.isFavorite = !task.isFavorite;
+        return task;
+      }
+      else {
+        return t;
+      }
+    })
+
+    setTasks(newTasks);
+  }
+
+  function handleSearchText(text) {
+    console.log("got Search Text: ", text);
+    text = text.trim().toLowerCase();
+    console.log(text);
+    let prevTasks = Tasks;
+
+    if (text === '') {
+      setTasks(prevTasks);
+    } else {
+      let filteredTasks = Tasks.filter(t => t.title.toLowerCase() === text.toLowerCase());
+
+      console.log(filteredTasks);
+      if (filteredTasks.length !== 0) {
+        setTasks(filteredTasks);
+      }
+    }
+
+    setTimeout(() => {
+      console.log('Showing Main List');
+      setTasks(prevTasks);
+    }, 5000);
+  }
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
@@ -312,7 +377,7 @@ function TaskBoard() {
         {showUpdateModal && <UpdateModal task={newEditableTask} onEditSave={handleEditSave} />}
 
         <div className="container">
-          <SearchBox />
+          <SearchBox onSearch={handleSearchText} />
           <div className="rounded-xl border border-[rgba(206,206,206,0.12)] bg-[#1D212B] px-6 py-8 md:px-9 md:py-16">
             <div className="mb-14 items-center justify-between sm:flex">
               <h2 className="text-2xl font-semibold max-sm:mb-4">Your Tasks</h2>
@@ -320,11 +385,11 @@ function TaskBoard() {
                 <button className="rounded-md bg-blue-500 px-3.5 py-2.5 text-sm font-semibold" onClick={() => {
                   setShowAddModal(true);
                 }}>Add Task</button>
-                <button className="rounded-md bg-red-500 px-3.5 py-2.5 text-sm font-semibold">Delete All</button>
+                <button className="rounded-md bg-red-500 px-3.5 py-2.5 text-sm font-semibold" onClick={(e) => { handleDeleteAll(); e.preventDefault() }}>Delete All</button>
               </div>
             </div>
             <div className="overflow-auto">
-              <Tasklist Tasks={Tasks} onEdit={handleEditTask} />
+              <Tasklist Tasks={Tasks} onEdit={handleEditTask} onDelete={handleDeleteTask} onFavorite={handleIsFavorite} />
             </div>
           </div>
         </div>
@@ -375,7 +440,6 @@ function Header() {
 export default function App() {
   return (
     <div className="bg-[#191D26] font-[Inter] text-white">
-      <h1 className="text-5xl font-semibold bg-yellow-600">Kishor Kumar Paroi</h1>
       <Header />
       <Hero />
       <TaskBoard />
